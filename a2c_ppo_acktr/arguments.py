@@ -1,6 +1,9 @@
 import argparse
 
 import torch
+import sys
+sys.path.append('./')
+from util.constants import *
 
 
 def get_args():
@@ -149,6 +152,38 @@ def get_args():
         action='store_true',
         default=False,
         help='use a linear schedule on the learning rate')
+
+    ####### Custom arguments #######
+    parser.add_argument("--simulation_mode", type=str, default="video", choices=["interactive", "video"], help='simulation mode: "interactive" or "video"')
+    parser.add_argument("--agent", type=str, default="simple", choices=["simple", "ppo"], help='Agent to use: "simple" or "ppo"')
+    parser.add_argument("--train", type=int, default=0, help='Train PPO model')
+    parser.add_argument("--model_path", type=str, help='Path of PPO model if already trained')
+    parser.add_argument("--num_train_steps", type=int, default=500_000, help='Number of steps to train PPO model')
+    parser.add_argument("--num_test_steps", type=int, default=100, help='Number of steps to test PPO model')
+    # parser.add_argument("--seed", type=int, default=0, help='Seed for environment')
+    parser.add_argument("--num_trials", type=int, default=1, help='Number of test trials to run')
+    parser.add_argument("--agent_init_pos_mode", type=str, default="random", choices=["random", "corner", "fixed_corner"], help="Initial position of agent")
+    parser.add_argument("--sensing_radius", type=float, default=DEFAULT_SENSING_RADIUS, help="Agent sensing radius")
+    parser.add_argument("--eating_radius", type=float, default=DEFAULT_EATING_RADIUS, help="Agent eating radius")
+    parser.add_argument("--eod_cost", type=float, default=DEFAULT_EOD_COST, help="Agent EOD cost")
+    parser.add_argument("--move_cost", type=float, default=DEFAULT_MOVE_COST, help="Agent move cost")
+    parser.add_argument("--turn_cost", type=float, default=DEFAULT_TURN_COST, help="Agent turn cost")
+    parser.add_argument("--num_food", type=int, default=10, help="Number of food in the arena")
+    parser.add_argument("--observation_mode", type=str, default="distance", choices=["distance", "vector"], help="Observation mode for agent")
+    parser.add_argument("--motion_mode", type=str, default="simple", choices=["simple", "kinetic"], help="Motion mode for agent")
+    parser.add_argument("--reward_mode", type=str, default="food_distance_shaping", choices=["food_distance_shaping", "food_eaten", "hunger_meter"], help="Reward mode for agent")
+    parser.add_argument("--food_init_pos_mode", type=str, default="random_with_close", choices=["random", "random_with_close"], help="Food position mode")
+    parser.add_argument("--food_motion_mode", type=str, default="stationary", choices=["stationary", "random"], help="Food position mode")
+    parser.add_argument("--eating_mode", type=str, default="auto", choices=["auto", "manual"], help="Eating mode for agent")
+    parser.add_argument("--food_reward", type=float, default=DEFAULT_FOOD_REWARD, help="Reward for eating food")
+    parser.add_argument("--max_linear_velocity", type=float, default=DEFAULT_MAX_LINEAR_VELOCITY, help="Maximum linear velocity for agent")
+    parser.add_argument("--max_angular_velocity", type=float, default=DEFAULT_MAX_ANGULAR_VELOCITY, help="Maximum angular velocity for agent")
+    parser.add_argument("--max_linear_accel", type=float, default=DEFAULT_MAX_LINEAR_ACCEL, help="Maximum linear acceleration for agent")
+    parser.add_argument("--max_angular_accel", type=float, default=DEFAULT_MAX_ANGULAR_ACCEL, help="Maximum angular acceleration for agent")
+    parser.add_argument("--egocentric_obs", type=int, default=0, help="Use egocentric observation mode")
+    parser.add_argument("--food_renewal", type=int, default=0, help="Spawn new food when food eaten")
+
+
     args = parser.parse_args()
 
     args.cuda = not args.no_cuda and torch.cuda.is_available()

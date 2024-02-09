@@ -16,6 +16,13 @@ from stable_baselines3.common.vec_env import (DummyVecEnv, SubprocVecEnv,
 from stable_baselines3.common.vec_env.vec_normalize import \
     VecNormalize as VecNormalize_
 
+import sys, os
+sys.path.append('./')
+sys.path.append('../')
+sys.path.append('../../')
+
+import importlib
+
 try:
     import dmc2gym
 except ImportError:
@@ -32,9 +39,40 @@ except ImportError:
     pass
 
 
-def make_env(env_id, seed, rank, log_dir, allow_early_resets):
+def make_env(env_id, seed, rank, log_dir, allow_early_resets, args=None):
+    if 'fish' in env_id.lower():
+        # import fish_env
+        # importlib.reload(fish_env)
+        from fish_env import FishEnv
+        print("Using Fish Env...")
+
+
     def _thunk():
-        if env_id.startswith("dm"):
+
+        if 'fish' in env_id.lower():
+            env = FishEnv(seed=args.seed,
+                          agent_init_pos_mode=args.agent_init_pos_mode,
+                          num_food=args.num_food,
+                          observation_mode=args.observation_mode,
+                          motion_mode=args.motion_mode,
+                          reward_mode=args.reward_mode,
+                          food_init_pos_mode=args.food_init_pos_mode,
+                          food_motion_mode=args.food_motion_mode,
+                          eating_mode=args.eating_mode,
+                          sensing_radius=args.sensing_radius,
+                          eating_radius=args.eating_radius,
+                          eod_cost=args.eod_cost,
+                          move_cost=args.move_cost,
+                          turn_cost=args.turn_cost,
+                          food_reward=args.food_reward,
+                          max_linear_velocity=args.max_linear_velocity,
+                          max_angular_velocity=args.max_angular_velocity,
+                          max_linear_accel=args.max_linear_accel,
+                          max_angular_accel=args.max_angular_accel,
+                          egocentric_obs=args.egocentric_obs,
+                          food_renewal=args.food_renewal,
+            )
+        elif env_id.startswith("dm"):
             _, domain, task = env_id.split('.')
             env = dmc2gym.make(domain_name=domain, task_name=task)
             env = ClipAction(env)
@@ -87,9 +125,10 @@ def make_vec_envs(env_name,
                   log_dir,
                   device,
                   allow_early_resets,
+                  args=None,
                   num_frame_stack=None):
     envs = [
-        make_env(env_name, seed, i, log_dir, allow_early_resets)
+        make_env(env_name, seed, i, log_dir, allow_early_resets, args)
         for i in range(num_processes)
     ]
 
