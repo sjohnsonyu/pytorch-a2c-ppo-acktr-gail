@@ -80,15 +80,18 @@ class Policy(nn.Module):
 
 
 class NNBase(nn.Module):
-    def __init__(self, recurrent, recurrent_input_size, hidden_size):
+    def __init__(self, recurrent, recurrent_input_size, hidden_size, rnn_type):
         super(NNBase, self).__init__()
 
         self._hidden_size = hidden_size
         self._recurrent = recurrent
 
         if recurrent:
-            self.gru = nn.GRU(recurrent_input_size, hidden_size)
-            for name, param in self.gru.named_parameters():
+            if rnn_type == 'rnn':
+                self.rnn = nn.RNN(recurrent_input_size, hidden_size, num_layers=1)
+            elif rnn_type == 'gru':
+                self.rnn = nn.GRU(recurrent_input_size, hidden_size)
+            for name, param in self.rnn.named_parameters():
                 if 'bias' in name:
                     nn.init.constant_(param, 0)
                 elif 'weight' in name:
@@ -108,9 +111,9 @@ class NNBase(nn.Module):
     def output_size(self):
         return self._hidden_size
 
-    def _forward_gru(self, x, hxs, masks):
+    def _forward_rnn(self, x, hxs, masks):
         if x.size(0) == hxs.size(0):
-            x, hxs = self.gru(x.unsqueeze(0), (hxs * masks).unsqueeze(0))
+            x, hxs = self.rnn(x.unsqueeze(0), (hxs * masks).unsqueeze(0))
             x = x.squeeze(0)
             hxs = hxs.squeeze(0)
         else:
@@ -150,7 +153,7 @@ class NNBase(nn.Module):
                 start_idx = has_zeros[i]
                 end_idx = has_zeros[i + 1]
 
-                rnn_scores, hxs = self.gru(
+                rnn_scores, hxs = self.rnn(
                     x[start_idx:end_idx],
                     hxs * masks[start_idx].view(1, -1, 1))
 
@@ -190,14 +193,14 @@ class CNNBase(NNBase):
         x = self.main(inputs / 255.0)
 
         if self.is_recurrent:
-            x, rnn_hxs = self._forward_gru(x, rnn_hxs, masks)
+            x, rnn_hxs = self._forward_rnn(x, rnn_hxs, masks)
 
         return self.critic_linear(x), x, rnn_hxs
 
 
 class MLPBase(NNBase):
-    def __init__(self, num_inputs, recurrent=False, hidden_size=64):
-        super(MLPBase, self).__init__(recurrent, num_inputs, hidden_size)
+    def __init__(self, num_inputs, recurrent=False, hidden_size=64, rnn_type='GRU'):
+        super(MLPBase, self).__init__(recurrent, num_inputs, hidden_size, rnn_type)
 
         if recurrent:
             num_inputs = hidden_size
@@ -221,7 +224,7 @@ class MLPBase(NNBase):
         x = inputs
 
         if self.is_recurrent:
-            x, rnn_hxs = self._forward_gru(x, rnn_hxs, masks)
+            x, rnn_hxs = self._forward_rnn(x, rnn_hxs, masks)
 
         hidden_critic = self.critic(x)
         hidden_actor = self.actor(x)
