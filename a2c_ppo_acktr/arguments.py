@@ -169,7 +169,7 @@ def get_args():
     parser.add_argument("--move_cost", type=float, default=DEFAULT_MOVE_COST, help="Agent move cost")
     parser.add_argument("--turn_cost", type=float, default=DEFAULT_TURN_COST, help="Agent turn cost")
     parser.add_argument("--num_food", type=int, default=10, help="Number of food in the arena")
-    parser.add_argument("--observation_mode", type=str, default="vector", choices=["distance", "vector"], help="Observation mode for agent")
+    parser.add_argument("--observation_mode", type=str, default="vector", choices=["distance", "vector", "angle_dist", "angle_wall"], help="Observation mode for agent")
     parser.add_argument("--motion_mode", type=str, default="simple", choices=["simple", "kinetic"], help="Motion mode for agent")
     parser.add_argument("--reward_mode", type=str, default="food_distance_shaping", choices=["food_distance_shaping", "food_eaten", "hunger_meter"], help="Reward mode for agent")
     parser.add_argument("--food_init_pos_mode", type=str, default="random_with_close", choices=["random", "random_with_close"], help="Food position mode")
@@ -186,6 +186,7 @@ def get_args():
     parser.add_argument("--rnn_type", type=str, default="rnn", choices=["rnn", "gru"], help="RNN type for PPO model")
     parser.add_argument("--hidden_size", type=int, default=64, help="Hidden size for PPO model")
 
+    parser.add_argument("--train_max_episode_steps", type=int, default=200, help="Maximum episode length for training")
 
     args = parser.parse_args()
 

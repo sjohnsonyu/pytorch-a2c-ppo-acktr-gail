@@ -266,8 +266,6 @@ def eval_with_video(args, device, actor_critic, exp_name):
                 recurrent_hidden_states, 
                 masks, 
                 deterministic=True)
-            print('obs', obs)
-            print('action', action[-1])
 
         obs, _, done, _ = env.step(action)
         masks.fill_(0.0 if done else 1.0)

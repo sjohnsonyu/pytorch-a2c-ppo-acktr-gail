@@ -71,6 +71,7 @@ def make_env(env_id, seed, rank, log_dir, allow_early_resets, args=None):
                           max_angular_accel=args.max_angular_accel,
                           egocentric_obs=args.egocentric_obs,
                           food_renewal=args.food_renewal,
+                          max_episode_steps=args.train_max_episode_steps
             )
         elif env_id.startswith("dm"):
             _, domain, task = env_id.split('.')
