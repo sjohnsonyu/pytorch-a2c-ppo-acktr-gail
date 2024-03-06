@@ -23,7 +23,7 @@ from a2c_ppo_acktr.storage import RolloutStorage
 from evaluation import evaluate
 
 from util.video_writer import VideoWriter
-
+from util.graphing_utils import plot_distance_vs_eod_rate, plot_distance_vs_eod_spi, plot_spi_distribution
 
 def main():
     args = get_args()
@@ -35,8 +35,12 @@ def main():
         torch.backends.cudnn.benchmark = False
         torch.backends.cudnn.deterministic = True
 
-    timestr = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-    exp_name = f'{args.env_name}-{timestr}'
+    if args.load_from_expname is None:
+        timestr = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+        exp_name = f'{args.env_name}-{timestr}'
+    else:
+        print('loading from expname:', args.load_from_expname)
+        exp_name = args.load_from_expname
 
     log_dir = os.path.expanduser(args.log_dir)
     eval_log_dir = log_dir + "_eval"
@@ -85,8 +89,13 @@ def main():
     #                         map_location=torch.device('cpu')
     #                         )[0]
     # eval_with_video(args, device, actor_critic, exp_name + 'temp')
-    training_loop(args, device, actor_critic, agent, envs, exp_name, eval_log_dir)
-    eval_with_video(args, device, actor_critic, exp_name)
+    if args.load_from_expname is None:
+        training_loop(args, device, actor_critic, agent, envs, exp_name, eval_log_dir)
+    else:
+        actor_critic, _ = torch.load(f'trained_models/ppo/FishEnv-v1-{exp_name}.pt')
+        actor_critic.to(device)
+    
+    eval_with_video(args, device, actor_critic, exp_name + '_temp')
 
 
 def training_loop(args, device, actor_critic, agent, envs, exp_name, eval_log_dir):
@@ -180,9 +189,12 @@ def training_loop(args, device, actor_critic, agent, envs, exp_name, eval_log_di
 
 
 # adapted from https://github.com/BruntonUWBio/plumetracknets/blob/main/code/ppo/main.py
-def eval_lite(env, args, device, actor_critic):
+def eval_lite(env, args, device, actor_critic, exp_name):
     t_start = time.time()
     episode_summaries = []
+    all_obs_history = []
+    all_eod_history = []
+    all_action_history = []
     num_episodes = 0
     for i_episode in range(args.num_test_trials):
         recurrent_hidden_states = torch.zeros(1, 
@@ -205,6 +217,11 @@ def eval_lite(env, args, device, actor_critic):
 
             obs, reward, done, info = env.step(action)
             masks.fill_(0.0 if done else 1.0)
+
+            if env.envs[0].curr_time == env.envs[0].max_episode_steps - 2:
+                all_obs_history.append(env.envs[0].obs_history)
+                all_eod_history.append(env.envs[0].eod_history)
+                all_action_history.append(env.envs[0].action_history)
 
             reward_sum += reward.detach().numpy().squeeze()
             ep_step += 1
@@ -230,6 +247,17 @@ def eval_lite(env, args, device, actor_critic):
         'steps_mean': np.around(steps_mean, decimals=2),
         't': np.around(comp_time, decimals=2),
     }
+    if args.eval_graphing:
+        def make_figures_directory(exp_name):
+            directory = f"figures/{exp_name}"
+            if not os.path.exists(directory):
+                os.makedirs(directory)
+
+        make_figures_directory(exp_name)
+        plot_distance_vs_eod_rate(np.concatenate(all_eod_history), np.concatenate(all_obs_history), exp_name)
+        plot_distance_vs_eod_spi(all_eod_history, all_obs_history, exp_name)  # FIXME slightly hacky
+        plot_spi_distribution(all_eod_history, exp_name)
+
     return eval_record
 
 
@@ -246,7 +274,7 @@ def eval_with_video(args, device, actor_critic, exp_name):
     # actor_critic = torch.load(f'trained_models/ppo/FishEnv-v1-{exp_name}.pt',
     #                           map_location=torch.device('cpu')
     #                           )[0]
-    eval_record = eval_lite(env, args, device, actor_critic)
+    eval_record = eval_lite(env, args, device, actor_critic, exp_name)
     print('eval_record', eval_record)
 
     video_writer = VideoWriter(f'{exp_name}', fps=10)

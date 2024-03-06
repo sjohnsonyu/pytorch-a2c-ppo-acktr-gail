@@ -152,6 +152,7 @@ def get_args():
         action='store_true',
         default=False,
         help='use a linear schedule on the learning rate')
+    
 
     ####### Custom arguments #######
     parser.add_argument("--simulation_mode", type=str, default="video", choices=["interactive", "video"], help='simulation mode: "interactive" or "video"')
@@ -187,6 +188,15 @@ def get_args():
     parser.add_argument("--hidden_size", type=int, default=64, help="Hidden size for PPO model")
 
     parser.add_argument("--train_max_episode_steps", type=int, default=200, help="Maximum episode length for training")
+    parser.add_argument(
+        '--load_from_expname',
+        default=None,
+        help='experiment name to load from')
+    parser.add_argument(
+        '--eval_graphing',
+        action='store_true',
+        default=False,
+        help='graph the evaluation')
 
     args = parser.parse_args()
 
