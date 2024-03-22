@@ -91,11 +91,12 @@ def main():
     # eval_with_video(args, device, actor_critic, exp_name + 'temp')
     if args.load_from_expname is None:
         training_loop(args, device, actor_critic, agent, envs, exp_name, eval_log_dir)
+        exp_name = exp_name + '_rerun'
     else:
         actor_critic, _ = torch.load(f'trained_models/ppo/FishEnv-v1-{exp_name}.pt')
         actor_critic.to(device)
     
-    eval_with_video(args, device, actor_critic, exp_name + '_temp')
+    eval_with_video(args, device, actor_critic, exp_name)
 
 
 def training_loop(args, device, actor_critic, agent, envs, exp_name, eval_log_dir):
@@ -277,7 +278,7 @@ def eval_with_video(args, device, actor_critic, exp_name):
     eval_record = eval_lite(env, args, device, actor_critic, exp_name)
     print('eval_record', eval_record)
 
-    video_writer = VideoWriter(f'{exp_name}', fps=10)
+    video_writer = VideoWriter(f'{exp_name}', fps=50)
     print("Rendering video...")
 
     recurrent_hidden_states = torch.zeros(1, 
