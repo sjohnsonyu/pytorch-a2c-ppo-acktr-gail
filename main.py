@@ -381,7 +381,7 @@ def eval_with_video(args, device, actor_critic, exp_name):
     eval_record = eval_lite(env, args, device, actor_critic, exp_name, make_graphs=args.eval_graphing)
     print('eval_record', eval_record)
 
-    video_writer = VideoWriter(f'{exp_name}', fps=10)
+    video_writer = VideoWriter(f'{exp_name}', fps=args.video_fps)
     print("Rendering video...")
 
     recurrent_hidden_states = torch.zeros(1, 
