@@ -197,6 +197,9 @@ def get_args():
         action='store_true',
         default=False,
         help='graph the evaluation')
+    parser.add_argument("--arena_width", type=int, default=60, help="Width of arena in cm")
+    parser.add_argument("--arena_height", type=int, default=60, help="Height of arena in cm")
+
 
     args = parser.parse_args()
 
