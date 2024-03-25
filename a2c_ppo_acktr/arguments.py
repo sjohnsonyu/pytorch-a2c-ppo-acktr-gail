@@ -163,6 +163,7 @@ def get_args():
     parser.add_argument("--num_test_steps", type=int, default=100, help='Number of steps to test PPO model')
     # parser.add_argument("--seed", type=int, default=0, help='Seed for environment')
     parser.add_argument("--num_test_trials", type=int, default=1, help='Number of test trials to run')
+    parser.add_argument("--num_val_trials", type=int, default=1, help='Number of validation trials to run')
     parser.add_argument("--agent_init_pos_mode", type=str, default="random", choices=["random", "corner", "fixed_corner"], help="Initial position of agent")
     parser.add_argument("--sensing_radius", type=float, default=DEFAULT_SENSING_RADIUS, help="Agent sensing radius")
     parser.add_argument("--eating_radius", type=float, default=DEFAULT_EATING_RADIUS, help="Agent eating radius")

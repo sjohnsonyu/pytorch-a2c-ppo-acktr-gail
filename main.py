@@ -257,7 +257,7 @@ def training_loop(args,
             #          args.num_processes, eval_log_dir, device)
 
             if eval_env is not None:
-                eval_record = eval_lite(eval_env, args, device, actor_critic, exp_name, make_graphs=False)
+                eval_record = eval_lite(eval_env, args, device, actor_critic, exp_name, args.num_val_trials, make_graphs=False)
                 eval_record['T'] = total_num_steps
                 eval_record['update'] = j
                 eval_log.append(eval_record)
@@ -272,7 +272,7 @@ def training_loop(args,
 
 
 # adapted from https://github.com/BruntonUWBio/plumetracknets/blob/main/code/ppo/main.py
-def eval_lite(env, args, device, actor_critic, exp_name, make_graphs=False, original_exp_name=None):
+def eval_lite(env, args, device, actor_critic, exp_name, num_episodes, make_graphs=False, original_exp_name=None):
     t_start = time.time()
     episode_summaries = []
     all_obs_history = []
@@ -280,7 +280,7 @@ def eval_lite(env, args, device, actor_critic, exp_name, make_graphs=False, orig
     all_action_history = []
     episode_logs = []
     num_episodes = 0
-    for i_episode in range(args.num_test_trials):
+    for i_episode in range(num_episodes):
         recurrent_hidden_states = torch.zeros(1, 
                     actor_critic.recurrent_hidden_state_size, device=device)
         masks = torch.zeros(1, 1, device=device)
@@ -384,7 +384,7 @@ def eval_with_video(args, device, actor_critic, exp_name, original_exp_name):
                         True,
                         args
                         )
-    eval_record = eval_lite(env, args, device, actor_critic, exp_name, make_graphs=args.eval_graphing, original_exp_name=original_exp_name)
+    eval_record = eval_lite(env, args, device, actor_critic, exp_name, args.num_test_trials, make_graphs=args.eval_graphing, original_exp_name=original_exp_name)
     print('eval_record', eval_record, flush=True)
 
     video_writer = VideoWriter(f'{exp_name}', fps=args.video_fps)
