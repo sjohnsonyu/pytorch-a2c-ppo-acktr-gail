@@ -41,12 +41,12 @@ def main():
     if args.load_from_expname is None:
         exp_name = f'{args.env_name}-{timestr}'
     else:
-        print('loading from expname:', args.load_from_expname)
-        exp_name = args.load_from_expname
+        print('loading from expname:', args.load_from_expname, flush=True)
+        exp_name = f'{args.env_name}-{args.load_from_expname}'
 
     log_dir = os.path.expanduser(args.log_dir)
     # eval_log_dir = log_dir + "_eval"
-    utils.cleanup_log_dir(log_dir)
+    # utils.cleanup_log_dir(log_dir)
     # utils.cleanup_log_dir(eval_log_dir)
     training_log = None
     eval_log = None
@@ -111,12 +111,14 @@ def main():
         with open(args_filename, 'w') as fp:
             json.dump(vars(args), fp, indent=4)
         training_log, eval_log = training_loop(args, device, actor_critic, agent, envs, exp_name, training_log=training_log, eval_log=eval_log, eval_env=eval_env)
+        original_exp_name = exp_name
     else:
-        actor_critic, _ = torch.load(f'trained_models/ppo/FishEnv-v1-{exp_name}.pt')
+        actor_critic, _ = torch.load(f'trained_models/ppo/{exp_name}.pt')
         actor_critic.to(device)
+        original_exp_name = exp_name
         exp_name = exp_name + f'_rerun_{timestr}'
     
-    eval_with_video(args, device, actor_critic, exp_name)
+    eval_with_video(args, device, actor_critic, exp_name, original_exp_name=original_exp_name)
 
 
 def training_loop(args,
@@ -217,8 +219,7 @@ def training_loop(args,
         if j % args.log_interval == 0 and len(episode_rewards) > 1:
             total_num_steps = (j + 1) * args.num_processes * args.num_steps
             end = time.time()
-            print(
-                "Updates {}, num timesteps {}, FPS {} \n Last {} training episodes: mean/median reward {:.1f}/{:.1f}, min/max reward {:.1f}/{:.1f}\n"
+            print("Updates {}, num timesteps {}, FPS {} \n Last {} training episodes: mean/median reward {:.1f}/{:.1f}, min/max reward {:.1f}/{:.1f}"
                 .format(j,
                         total_num_steps,
                         int(total_num_steps / (end - start)),
@@ -226,10 +227,8 @@ def training_loop(args,
                         np.mean(episode_rewards),
                         np.median(episode_rewards),
                         np.min(episode_rewards),
-                        np.max(episode_rewards),
-                        dist_entropy,
-                        value_loss,
-                        action_loss))
+                        np.max(episode_rewards)),
+                flush=True)
 
             training_log.append({
                     'update': j,
@@ -262,7 +261,7 @@ def training_loop(args,
                 eval_record['T'] = total_num_steps
                 eval_record['update'] = j
                 eval_log.append(eval_record)
-                print("eval_lite:", eval_record)
+                print("eval_lite:", eval_record, flush=True)
 
                 save_path = args.log_dir #args.save_dir # os.path.join(args.save_dir, args.algo)
                 os.makedirs(save_path, exist_ok=True)
@@ -273,7 +272,7 @@ def training_loop(args,
 
 
 # adapted from https://github.com/BruntonUWBio/plumetracknets/blob/main/code/ppo/main.py
-def eval_lite(env, args, device, actor_critic, exp_name, make_graphs=False):
+def eval_lite(env, args, device, actor_critic, exp_name, make_graphs=False, original_exp_name=None):
     t_start = time.time()
     episode_summaries = []
     all_obs_history = []
@@ -358,14 +357,18 @@ def eval_lite(env, args, device, actor_critic, exp_name, make_graphs=False):
         plot_distance_vs_eod_spi(all_eod_history, all_obs_history, exp_name)  # FIXME slightly hacky
         plot_spi_distribution(all_eod_history, exp_name)
 
-        training_log = pd.read_csv(f'{args.log_dir}/{exp_name}_training_log.csv')
-        eval_log = pd.read_csv(f'{args.log_dir}/{exp_name}_eval_log.csv')
-        plot_training_val_rewards(training_log, eval_log, exp_name)
+        try:
+            original_exp_name = exp_name if original_exp_name is None else original_exp_name
+            training_log = pd.read_csv(f'{args.log_dir}/{original_exp_name}_training_log.csv', index_col=0)
+            eval_log = pd.read_csv(f'{args.log_dir}/{original_exp_name}_eval_log.csv', index_col=0)
+            plot_training_val_rewards(training_log, eval_log, original_exp_name)
+        except Exception as e:
+            print("Problem with plotting training and val rewards: ", e, flush=True)
 
     return eval_record
 
 
-def eval_with_video(args, device, actor_critic, exp_name):
+def eval_with_video(args, device, actor_critic, exp_name, original_exp_name):
     env = make_vec_envs(args.env_name,
                         args.seed,
                         1,  # num_processes
@@ -375,14 +378,11 @@ def eval_with_video(args, device, actor_critic, exp_name):
                         True,
                         args
                         )
-    # actor_critic = torch.load(f'trained_models/ppo/FishEnv-v1-{exp_name}.pt',
-    #                           map_location=torch.device('cpu')
-    #                           )[0]
-    eval_record = eval_lite(env, args, device, actor_critic, exp_name, make_graphs=args.eval_graphing)
-    print('eval_record', eval_record)
+    eval_record = eval_lite(env, args, device, actor_critic, exp_name, make_graphs=args.eval_graphing, original_exp_name=original_exp_name)
+    print('eval_record', eval_record, flush=True)
 
     video_writer = VideoWriter(f'{exp_name}', fps=args.video_fps)
-    print("Rendering video...")
+    print("Rendering video...", flush=True)
 
     recurrent_hidden_states = torch.zeros(1, 
                 actor_critic.recurrent_hidden_state_size, device=device)
