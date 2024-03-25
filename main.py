@@ -351,7 +351,7 @@ def eval_lite(env, args, device, actor_critic, exp_name, make_graphs=False, orig
         with open(test_log_filename, 'w') as f:
             json.dump(eval_record, f, indent=4)
 
-        with open(f'{args.log_dir}/{exp_name}_episode_logs.pkl', 'wb') as f:
+        with open(os.path.join(save_path, f'{exp_name}_episode_logs.pkl'), 'wb') as f:
             pickle.dump(episode_logs, f)
 
         figures_directory = f"figures/{original_exp_name}"
