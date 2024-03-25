@@ -111,7 +111,7 @@ def main():
         with open(args_filename, 'w') as fp:
             json.dump(vars(args), fp, indent=4)
         training_log, eval_log = training_loop(args, device, actor_critic, agent, envs, exp_name, training_log=training_log, eval_log=eval_log, eval_env=eval_env)
-        original_exp_name = exp_name
+        original_exp_name = None
     else:
         actor_critic, _ = torch.load(f'trained_models/ppo/{exp_name}.pt')
         actor_critic.to(device)
@@ -244,7 +244,7 @@ def training_loop(args,
                 })
 
             # Save training curve
-            save_path = args.log_dir #args.save_dir # os.path.join(args.save_dir, args.algo)
+            save_path = os.path.join(args.log_dir, exp_name) #args.save_dir # os.path.join(args.save_dir, args.algo)
             os.makedirs(save_path, exist_ok=True)
             fname = os.path.join(save_path, f'{exp_name}_training_log.csv')
             pd.DataFrame(training_log).to_csv(fname)
@@ -263,7 +263,7 @@ def training_loop(args,
                 eval_log.append(eval_record)
                 print("eval_lite:", eval_record, flush=True)
 
-                save_path = args.log_dir #args.save_dir # os.path.join(args.save_dir, args.algo)
+                save_path = os.path.join(args.log_dir, exp_name) #args.save_dir # os.path.join(args.save_dir, args.algo)
                 os.makedirs(save_path, exist_ok=True)
                 fname = os.path.join(save_path, f'{exp_name}_eval_log.csv')
                 pd.DataFrame(eval_log).to_csv(fname)
@@ -342,7 +342,9 @@ def eval_lite(env, args, device, actor_critic, exp_name, make_graphs=False, orig
                 os.makedirs(directory)
 
         # LOGS
-        save_path = args.log_dir #args.save_dir # os.path.join(args.save_dir, args.algo)
+        is_rerun = original_exp_name is not None
+        original_exp_name = exp_name if original_exp_name is None else original_exp_name
+        save_path = os.path.join(args.log_dir, original_exp_name) #args.save_dir # os.path.join(args.save_dir, args.algo)
         os.makedirs(save_path, exist_ok=True)
         test_log_filename = os.path.join(save_path, f'{exp_name}_test_log.csv')
         # pd.DataFrame(eval_record).to_csv(test_log_filename)
@@ -352,15 +354,19 @@ def eval_lite(env, args, device, actor_critic, exp_name, make_graphs=False, orig
         with open(f'{args.log_dir}/{exp_name}_episode_logs.pkl', 'wb') as f:
             pickle.dump(episode_logs, f)
 
-        make_figures_directory(exp_name)
-        plot_distance_vs_eod_rate(np.concatenate(all_eod_history), np.concatenate(all_obs_history), exp_name)
-        plot_distance_vs_eod_spi(all_eod_history, all_obs_history, exp_name)  # FIXME slightly hacky
-        plot_spi_distribution(all_eod_history, exp_name)
+        figures_directory = f"figures/{original_exp_name}"
+        if is_rerun:
+            figures_directory = os.path.join(figures_directory, exp_name)
+        if not os.path.exists(figures_directory):
+            os.makedirs(figures_directory)
+
+        plot_distance_vs_eod_rate(np.concatenate(all_eod_history), np.concatenate(all_obs_history), figures_directory, exp_name)
+        plot_distance_vs_eod_spi(all_eod_history, all_obs_history, figures_directory, exp_name)  # FIXME slightly hacky
+        plot_spi_distribution(all_eod_history, figures_directory, exp_name)
 
         try:
-            original_exp_name = exp_name if original_exp_name is None else original_exp_name
-            training_log = pd.read_csv(f'{args.log_dir}/{original_exp_name}_training_log.csv', index_col=0)
-            eval_log = pd.read_csv(f'{args.log_dir}/{original_exp_name}_eval_log.csv', index_col=0)
+            training_log = pd.read_csv(f'{args.log_dir}/{original_exp_name}/{original_exp_name}_training_log.csv', index_col=0)
+            eval_log = pd.read_csv(f'{args.log_dir}/{original_exp_name}/{original_exp_name}_eval_log.csv', index_col=0)
             plot_training_val_rewards(training_log, eval_log, original_exp_name)
         except Exception as e:
             print("Problem with plotting training and val rewards: ", e, flush=True)
