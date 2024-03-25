@@ -272,7 +272,7 @@ def training_loop(args,
 
 
 # adapted from https://github.com/BruntonUWBio/plumetracknets/blob/main/code/ppo/main.py
-def eval_lite(env, args, device, actor_critic, exp_name, num_episodes, make_graphs=False, original_exp_name=None):
+def eval_lite(env, args, device, actor_critic, exp_name, num_eval_episodes, make_graphs=False, original_exp_name=None):
     t_start = time.time()
     episode_summaries = []
     all_obs_history = []
@@ -280,7 +280,7 @@ def eval_lite(env, args, device, actor_critic, exp_name, num_episodes, make_grap
     all_action_history = []
     episode_logs = []
     num_episodes = 0
-    for i_episode in range(num_episodes):
+    for i_episode in range(num_eval_episodes):
         recurrent_hidden_states = torch.zeros(1, 
                     actor_critic.recurrent_hidden_state_size, device=device)
         masks = torch.zeros(1, 1, device=device)
@@ -288,11 +288,9 @@ def eval_lite(env, args, device, actor_critic, exp_name, num_episodes, make_grap
 
         reward_sum = 0
         ep_step = 0
-        ep_step = 0
 
         while True:
             with torch.no_grad():
-                # value, action, _, recurrent_hidden_states, activity = actor_critic.act(
                 value, action, _, recurrent_hidden_states = actor_critic.act(
                     obs, 
                     recurrent_hidden_states, 
@@ -301,11 +299,6 @@ def eval_lite(env, args, device, actor_critic, exp_name, num_episodes, make_grap
 
             obs, reward, done, info = env.step(action)
             masks.fill_(0.0 if done else 1.0)
-
-            # if env.envs[0].curr_time == env.envs[0].max_episode_steps - 2:
-            #     all_obs_history.append(env.envs[0].obs_history)
-            #     all_eod_history.append(env.envs[0].eod_history)
-            #     all_action_history.append(env.envs[0].action_history)
 
             reward_sum += reward.detach().numpy().squeeze()
             ep_step += 1
