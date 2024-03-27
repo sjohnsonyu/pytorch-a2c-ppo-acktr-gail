@@ -202,6 +202,7 @@ def get_args():
     parser.add_argument("--arena_height", type=int, default=60, help="Height of arena in cm")
     parser.add_argument("--video_fps", type=int, default=10, help="FPS for video recording")
     parser.add_argument("--init_energy_level", type=float, default=0.5, help="Starting energy level")
+    parser.add_argument("--center_energy_level_at", type=float, default=1, help="Energy level reward is calculated as energy_level - this value")
 
 
     args = parser.parse_args()
