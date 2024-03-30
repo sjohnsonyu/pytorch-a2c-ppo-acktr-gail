@@ -75,7 +75,8 @@ def make_env(env_id, seed, rank, log_dir, allow_early_resets, args=None):
                           arena_width=args.arena_width,
                           arena_height=args.arena_height,
                           init_energy_level=args.init_energy_level,
-                          center_energy_level_at=args.center_energy_level_at
+                          center_energy_level_at=args.center_energy_level_at,
+                          min_linear_velocity=args.min_linear_velocity
             )
         elif env_id.startswith("dm"):
             _, domain, task = env_id.split('.')
