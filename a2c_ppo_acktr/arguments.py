@@ -204,7 +204,7 @@ def get_args():
     parser.add_argument("--init_energy_level", type=float, default=0.5, help="Starting energy level")
     parser.add_argument("--center_energy_level_at", type=float, default=1, help="Energy level reward is calculated as energy_level - this value")
     parser.add_argument("--min_linear_velocity", type=float, default=None, help="Minimum linear velocity for agent")
-
+    parser.add_argument("--eating_too_much_cost", type=float, default=0, help="Cost for eating too much")
 
     args = parser.parse_args()
 
