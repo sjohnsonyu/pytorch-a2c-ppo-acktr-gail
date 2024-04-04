@@ -78,7 +78,11 @@ def make_env(env_id, seed, rank, log_dir, allow_early_resets, args=None):
                           center_energy_level_at=args.center_energy_level_at,
                           min_linear_velocity=args.min_linear_velocity,
                           eating_too_much_cost=args.eating_too_much_cost,
-                          metabolic_cost=args.metabolic_cost
+                          metabolic_cost=args.metabolic_cost,
+                          starvation_cost=args.starvation_cost,
+                          energy_level_mode=args.energy_level_mode,
+                          survival_reward=args.survival_reward,
+                          food_energy_delta=args.food_energy_delta,
             )
         elif env_id.startswith("dm"):
             _, domain, task = env_id.split('.')
