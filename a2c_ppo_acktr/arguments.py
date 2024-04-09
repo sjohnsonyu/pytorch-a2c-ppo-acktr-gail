@@ -210,6 +210,10 @@ def get_args():
     parser.add_argument("--energy_level_mode", type=str, default="accel", choices=["accel", "velo"], help="Mode for calculating energy level")
     parser.add_argument("--survival_reward", type=float, default=10, help="Reward for surviving")
     parser.add_argument("--food_energy_delta", type=float, default=0.5, help="Energy level increase for eating food")
+    parser.add_argument("--min_train_init_energy_level", type=float, default=None, help="Minimum energy level for training")
+    parser.add_argument("--max_train_init_energy_level", type=float, default=None, help="Maximim energy level for training")
+    parser.add_argument("--min_train_num_food", type=int, default=None, help="Minimum number of food for training")
+    parser.add_argument("--max_train_num_food", type=int, default=None, help="Maximum number of food for training")
 
     args = parser.parse_args()
 

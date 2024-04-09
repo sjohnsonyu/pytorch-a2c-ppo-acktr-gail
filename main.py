@@ -376,6 +376,10 @@ def eval_lite(env, args, device, actor_critic, exp_name, num_eval_episodes, make
 
 
 def eval_with_video(args, device, actor_critic, exp_name, original_exp_name):
+    args.min_train_init_energy_level = None
+    args.max_train_init_energy_level = None
+    args.min_train_num_food = None
+    args.max_train_num_food = None
     env = make_vec_envs(args.env_name,
                         args.seed,
                         1,  # num_processes
