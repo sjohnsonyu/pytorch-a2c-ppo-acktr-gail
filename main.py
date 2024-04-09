@@ -159,7 +159,7 @@ def training_loop(args,
         for step in range(args.num_steps):
             # Sample actions
             with torch.no_grad():
-                value, action, action_log_prob, recurrent_hidden_states = actor_critic.act(
+                value, action, action_log_prob, recurrent_hidden_states, activities = actor_critic.act(
                     rollouts.obs[step], rollouts.recurrent_hidden_states[step],
                     rollouts.masks[step])
 
@@ -279,6 +279,7 @@ def eval_lite(env, args, device, actor_critic, exp_name, num_eval_episodes, make
     all_eod_history = []
     all_action_history = []
     episode_logs = []
+    all_activities = []
     num_episodes = 0
     for i_episode in range(num_eval_episodes):
         recurrent_hidden_states = torch.zeros(1, 
@@ -289,13 +290,16 @@ def eval_lite(env, args, device, actor_critic, exp_name, num_eval_episodes, make
         reward_sum = 0
         ep_step = 0
 
+        episode_activities = []
+
         while True:
             with torch.no_grad():
-                value, action, _, recurrent_hidden_states = actor_critic.act(
+                value, action, _, recurrent_hidden_states, activities = actor_critic.act(
                     obs, 
                     recurrent_hidden_states, 
                     masks, 
                     deterministic=True)
+                episode_activities.append(activities)
 
             obs, reward, done, info = env.step(action)
             masks.fill_(0.0 if done else 1.0)
@@ -315,6 +319,7 @@ def eval_lite(env, args, device, actor_critic, exp_name, num_eval_episodes, make
                 all_obs_history.append(info[0]['observations'])
                 all_eod_history.append(info[0]['eods'])
                 all_action_history.append(info[0]['actions'])
+                all_activities.append(episode_activities)
                 break # out of while loop
 
     episode_summaries = pd.DataFrame(episode_summaries)
@@ -346,6 +351,9 @@ def eval_lite(env, args, device, actor_critic, exp_name, num_eval_episodes, make
 
         with open(os.path.join(save_path, f'{exp_name}_episode_logs.pkl'), 'wb') as f:
             pickle.dump(episode_logs, f)
+
+        with open(os.path.join(save_path, f'{exp_name}_activities.pkl'), 'wb') as f:
+            pickle.dump(all_activities, f)
 
         figures_directory = f"figures/{original_exp_name}"
         if is_rerun:
@@ -392,7 +400,7 @@ def eval_with_video(args, device, actor_critic, exp_name, original_exp_name):
         with torch.no_grad():
             frame = env.render(mode="rgb_array")
             video_writer.add_frame(frame)
-            value, action, _, recurrent_hidden_states = actor_critic.act(
+            value, action, _, recurrent_hidden_states, activities = actor_critic.act(
                 obs,
                 recurrent_hidden_states, 
                 masks, 
