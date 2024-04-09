@@ -83,6 +83,10 @@ def make_env(env_id, seed, rank, log_dir, allow_early_resets, args=None):
                           energy_level_mode=args.energy_level_mode,
                           survival_reward=args.survival_reward,
                           food_energy_delta=args.food_energy_delta,
+                          min_train_init_energy_level=args.min_train_init_energy_level,
+                          max_train_init_energy_level=args.max_train_init_energy_level,
+                          min_train_num_food=args.min_train_num_food,
+                          max_train_num_food=args.max_train_num_food,
             )
         elif env_id.startswith("dm"):
             _, domain, task = env_id.split('.')
