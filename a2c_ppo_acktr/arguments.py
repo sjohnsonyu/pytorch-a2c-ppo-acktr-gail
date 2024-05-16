@@ -171,7 +171,7 @@ def get_args():
     parser.add_argument("--move_cost", type=float, default=DEFAULT_MOVE_COST, help="Agent move cost")
     parser.add_argument("--turn_cost", type=float, default=DEFAULT_TURN_COST, help="Agent turn cost")
     parser.add_argument("--num_food", type=int, default=10, help="Number of food in the arena")
-    parser.add_argument("--observation_mode", type=str, default="vector", choices=["distance", "vector", "angle_dist", "angle_wall", "angle_wall_hunger"], help="Observation mode for agent")
+    parser.add_argument("--observation_mode", type=str, default="vector", choices=["distance", "vector", "angle_dist", "angle_wall", "angle_wall_hunger", "quad_dist"], help="Observation mode for agent")
     parser.add_argument("--motion_mode", type=str, default="simple", choices=["simple", "kinetic"], help="Motion mode for agent")
     parser.add_argument("--reward_mode", type=str, default="food_distance_shaping", choices=["food_distance_shaping", "food_eaten", "hunger_meter", "hunger_with_done"], help="Reward mode for agent")
     parser.add_argument("--food_init_pos_mode", type=str, default="random_with_close", choices=["random", "random_with_close"], help="Food position mode")
@@ -214,6 +214,7 @@ def get_args():
     parser.add_argument("--max_train_init_energy_level", type=float, default=None, help="Maximim energy level for training")
     parser.add_argument("--min_train_num_food", type=int, default=None, help="Minimum number of food for training")
     parser.add_argument("--max_train_num_food", type=int, default=None, help="Maximum number of food for training")
+    parser.add_argument("--observation_prob_constant", type=float, default=1, help="Constant for numerator in probability of observation")
 
     args = parser.parse_args()
 

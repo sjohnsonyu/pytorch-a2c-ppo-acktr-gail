@@ -87,6 +87,7 @@ def make_env(env_id, seed, rank, log_dir, allow_early_resets, args=None):
                           max_train_init_energy_level=args.max_train_init_energy_level,
                           min_train_num_food=args.min_train_num_food,
                           max_train_num_food=args.max_train_num_food,
+                          observation_prob_constant=args.observation_prob_constant,
             )
         elif env_id.startswith("dm"):
             _, domain, task = env_id.split('.')
