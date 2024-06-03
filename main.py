@@ -73,6 +73,7 @@ def main():
         args=args,
         allow_early_resets=True)
 
+
     actor_critic = Policy(
         envs.observation_space.shape,
         envs.action_space,
@@ -294,6 +295,7 @@ def eval_lite(env, args, device, actor_critic, exp_name, num_eval_episodes, make
 
         while True:
             with torch.no_grad():
+                # breakpoint()
                 value, action, _, recurrent_hidden_states, activities = actor_critic.act(
                     obs, 
                     recurrent_hidden_states, 
@@ -400,6 +402,8 @@ def eval_with_video(args, device, actor_critic, exp_name, original_exp_name):
     masks = torch.zeros(1, 1, device=device)
     obs = env.reset()
 
+    episode_activities = []
+
     while True:
         with torch.no_grad():
             frame = env.render(mode="rgb_array")
@@ -410,13 +414,19 @@ def eval_with_video(args, device, actor_critic, exp_name, original_exp_name):
                 masks, 
                 deterministic=True)
 
+            episode_activities.append(activities['rnn_hxs'].numpy().squeeze())
+
         obs, _, done, _ = env.step(action)
         masks.fill_(0.0 if done else 1.0)
         if done:
             break
 
-    # breakpoint()
+    activity_frames, _ = render_activities(episode_activities, episode_idx=None, pca_dims=3, shared_pca=None)
+    for frame in activity_frames:
+        video_writer.add_frame(frame, track=1)
+
     video_writer.save_video()
+    video_writer.save_stitched_video()
 
 
 
