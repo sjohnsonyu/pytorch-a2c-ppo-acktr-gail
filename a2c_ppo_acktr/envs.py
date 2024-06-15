@@ -88,6 +88,10 @@ def make_env(env_id, seed, rank, log_dir, allow_early_resets, args=None):
                           min_train_num_food=args.min_train_num_food,
                           max_train_num_food=args.max_train_num_food,
                           observation_prob_constant=args.observation_prob_constant,
+                          agent_init_pos_x=args.agent_init_pos_x,
+                          agent_init_pos_y=args.agent_init_pos_y,
+                          agent_init_orientation=args.agent_init_orientation,
+                          noisy_obs_sigma=args.noisy_obs_sigma,
             )
         elif env_id.startswith("dm"):
             _, domain, task = env_id.split('.')

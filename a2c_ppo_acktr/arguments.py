@@ -164,14 +164,14 @@ def get_args():
     # parser.add_argument("--seed", type=int, default=0, help='Seed for environment')
     parser.add_argument("--num_test_trials", type=int, default=1, help='Number of test trials to run')
     parser.add_argument("--num_val_trials", type=int, default=1, help='Number of validation trials to run')
-    parser.add_argument("--agent_init_pos_mode", type=str, default="random", choices=["random", "corner", "fixed_corner"], help="Initial position of agent")
+    parser.add_argument("--agent_init_pos_mode", type=str, default="random", choices=["random", "corner", "fixed_corner", "fixed"], help="Initial position of agent")
     parser.add_argument("--sensing_radius", type=float, default=DEFAULT_SENSING_RADIUS, help="Agent sensing radius")
     parser.add_argument("--eating_radius", type=float, default=DEFAULT_EATING_RADIUS, help="Agent eating radius")
     parser.add_argument("--eod_cost", type=float, default=DEFAULT_EOD_COST, help="Agent EOD cost")
     parser.add_argument("--move_cost", type=float, default=DEFAULT_MOVE_COST, help="Agent move cost")
     parser.add_argument("--turn_cost", type=float, default=DEFAULT_TURN_COST, help="Agent turn cost")
     parser.add_argument("--num_food", type=int, default=10, help="Number of food in the arena")
-    parser.add_argument("--observation_mode", type=str, default="vector", choices=["distance", "vector", "angle_dist", "angle_wall", "angle_wall_hunger", "quad_dist"], help="Observation mode for agent")
+    parser.add_argument("--observation_mode", type=str, default="vector", choices=["distance", "vector", "angle_dist", "angle_wall", "angle_wall_hunger", "quad_dist_prob", "quad_dist_joint", "quad_dist_radius"], help="Observation mode for agent")
     parser.add_argument("--motion_mode", type=str, default="simple", choices=["simple", "kinetic"], help="Motion mode for agent")
     parser.add_argument("--reward_mode", type=str, default="food_distance_shaping", choices=["food_distance_shaping", "food_eaten", "hunger_meter", "hunger_with_done", "hunger_metabolism"], help="Reward mode for agent")
     parser.add_argument("--food_init_pos_mode", type=str, default="random_with_close", choices=["random", "random_with_close"], help="Food position mode")
@@ -215,6 +215,10 @@ def get_args():
     parser.add_argument("--min_train_num_food", type=int, default=None, help="Minimum number of food for training")
     parser.add_argument("--max_train_num_food", type=int, default=None, help="Maximum number of food for training")
     parser.add_argument("--observation_prob_constant", type=float, default=1, help="Constant for numerator in probability of observation")
+    parser.add_argument("--agent_init_pos_x", type=float, default=None, help="X location where the agent is placed initially")  # for train or test regime?
+    parser.add_argument("--agent_init_pos_y", type=float, default=None, help="Y location where the agent is placed initially")  # for train or test regime?
+    parser.add_argument("--agent_init_orientation", type=float, default=None, help="Initial orientation of the agent")  # for train or test regime?
+    parser.add_argument("--noisy_obs_sigma", type=float, default=None, help="Std dev of noise to add to the observation")
 
     args = parser.parse_args()
 
@@ -224,5 +228,11 @@ def get_args():
     if args.recurrent_policy:
         assert args.algo in ['a2c', 'ppo'], \
             'Recurrent policy is not implemented for ACKTR'
+
+    if args.agent_init_pos_mode == 'fixed':
+        assert args.agent_init_pos_x is not None
+        assert args.agent_init_pos_y is not None
+        assert args.agent_init_pos_x < args.arena_width
+        assert args.agent_init_pos_y < args.arena_height
 
     return args
