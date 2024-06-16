@@ -354,8 +354,21 @@ def eval_lite(env, args, device, actor_critic, exp_name, num_eval_episodes, make
         with open(os.path.join(save_path, f'{exp_name}_episode_logs.pkl'), 'wb') as f:
             pickle.dump(episode_logs, f)
 
+        def to_cpu(obj):
+            if torch.is_tensor(obj):
+                return obj.cpu()
+            elif isinstance(obj, dict):
+                return {k: to_cpu(v) for k, v in obj.items()}
+            elif isinstance(obj, dict):
+                return {k: to_cpu(v) for k, v in obj.items()}
+            elif isinstance(obj, list):
+                return [to_cpu(v) for v in obj]
+            else:
+                return obj
+
+        activities_cpu = to_cpu(all_activities)
         with open(os.path.join(save_path, f'{exp_name}_activities.pkl'), 'wb') as f:
-            pickle.dump(all_activities, f)
+            pickle.dump(activities_cpu, f)
 
         figures_directory = f"figures/{original_exp_name}"
         if is_rerun:
