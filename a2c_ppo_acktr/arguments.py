@@ -220,6 +220,7 @@ def get_args():
     parser.add_argument("--agent_init_orientation", type=float, default=None, help="Initial orientation of the agent")  # for train or test regime?
     parser.add_argument("--noisy_obs_sigma", type=float, default=None, help="Std dev of noise to add to the observation")
 
+
     args = parser.parse_args()
 
     args.cuda = not args.no_cuda and torch.cuda.is_available()

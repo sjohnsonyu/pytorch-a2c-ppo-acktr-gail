@@ -44,7 +44,7 @@ def make_env(env_id, seed, rank, log_dir, allow_early_resets, args=None):
         # import fish_env
         # importlib.reload(fish_env)
         from fish_env import FishEnv
-        print("Using Fish Env...")
+        # print("Using Fish Env...")
 
 
     def _thunk():
